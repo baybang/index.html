@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Bay Bang IPSports</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;
+  --sur:#0f1420;
+  --sur2:#161d2e;
+  --bor:rgba(255,255,255,0.07);
+  --gold:#1a4fd6;
+  --gold2:#3b6ef0;
+  --red:#e63946;
+  --text:#eef0f4;
+  --muted:#5a6480;
+  --accent:#1a6bbd;
+}
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  display:grid;
+  grid-template-rows:56px 1fr;
+  grid-template-columns:290px 1fr;
+  grid-template-areas:"hdr hdr" "side main";
+}
+
+/* ── HEADER ── */
+header{
+  grid-area:hdr;
+  background:var(--sur);
+  border-bottom:1px solid var(--bor);
+  display:flex;align-items:center;gap:14px;padding:0 18px;
+}
+.brand{
+  font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;white-space:nowrap;
+  color:var(--gold);display:flex;align-items:center;gap:8px;
+}
+.brand em{color:var(--text);font-style:normal}
+.brand .ball{font-size:20px}
+.search{
+  flex:1;max-width:300px;position:relative;
+}
+.search input{
+  width:100%;background:var(--sur2);border:1px solid var(--bor);
+  border-radius:8px;color:var(--text);font-size:13px;
+  padding:8px 12px 8px 34px;outline:none;font-family:'Inter',sans-serif;
+  transition:border-color .2s;
+}
+.search input:focus{border-color:var(--gold)}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4;pointer-events:none}
+.lang-tabs{display:flex;gap:4px;margin-left:auto}
+.lang-tab{
+  background:transparent;border:1px solid var(--bor);border-radius:6px;
+  color:var(--muted);font-size:12px;padding:5px 12px;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .15s;
+}
+.lang-tab.active,.lang-tab:hover{background:var(--gold);color:#000;border-color:var(--gold);font-weight:500}
+.hdr-status{font-size:12px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.dot.live{background:#2ecc71;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── SIDEBAR ── */
+aside{
+  grid-area:side;
+  background:var(--sur);
+  border-right:1px solid var(--bor);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.side-head{
+  padding:10px 14px;
+  font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid var(--bor);
+  display:flex;justify-content:space-between;align-items:center;
+  flex-shrink:0;
+}
+.cnt-badge{
+  background:var(--gold);color:#000;border-radius:20px;
+  padding:1px 9px;font-size:11px;font-weight:700;
+}
+.ch-list{overflow-y:auto;flex:1}
+.ch-list::-webkit-scrollbar{width:3px}
+.ch-list::-webkit-scrollbar-thumb{background:var(--sur2);border-radius:2px}
+.ch-item{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;cursor:pointer;
+  border-bottom:1px solid var(--bor);
+  transition:background .12s;
+  position:relative;
+}
+.ch-item:hover{background:var(--sur2)}
+.ch-item.active{
+  background:rgba(26,79,214,.18);
+  border-left:3px solid var(--gold);
+  padding-left:11px;
+}
+.ch-logo{
+  width:36px;height:36px;border-radius:6px;
+  background:var(--sur2);border:1px solid var(--bor);
+  object-fit:contain;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;overflow:hidden;
+}
+.ch-logo img{width:100%;height:100%;object-fit:contain;border-radius:5px}
+.ch-info{flex:1;min-width:0}
+.ch-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;gap:6px;align-items:center}
+.lang-dot{
+  width:5px;height:5px;border-radius:50%;background:var(--gold);display:inline-block;
+}
+.hd-tag{
+  font-size:9px;font-weight:700;letter-spacing:.5px;
+  background:rgba(26,79,214,.15);color:var(--gold);
+  border:1px solid rgba(26,79,214,.35);border-radius:3px;
+  padding:1px 5px;text-transform:uppercase;flex-shrink:0;
+}
+.no-res{padding:30px 14px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7}
+
+/* ── MAIN / PLAYER ── */
+main{
+  grid-area:main;
+  display:flex;flex-direction:column;
+  background:#000;overflow:hidden;
+}
+.vid-wrap{flex:1;position:relative;background:#000;display:flex;align-items:center;justify-content:center}
+video{width:100%;height:100%;object-fit:contain;display:block}
+.overlay{
+  position:absolute;inset:0;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(7,9,15,.85);text-align:center;padding:24px;
+}
+.overlay.show{display:flex}
+.ov-icon{font-size:60px;margin-bottom:14px}
+.ov-title{
+  font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;
+}
+.ov-sub{font-size:13px;color:var(--muted);max-width:300px;line-height:1.6}
+.spinner{
+  width:46px;height:46px;border:3px solid rgba(240,180,41,.15);
+  border-top-color:var(--gold);border-radius:50%;
+  animation:spin .75s linear infinite;margin-bottom:16px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Now playing bar */
+.np-bar{
+  background:var(--sur);border-top:1px solid var(--bor);
+  padding:9px 18px;display:none;
+  align-items:center;gap:14px;flex-shrink:0;
+}
+.np-bar.show{display:flex}
+.np-logo{width:32px;height:32px;border-radius:5px;background:var(--sur2);border:1px solid var(--bor);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden}
+.np-logo img{width:100%;height:100%;object-fit:contain;border-radius:4px}
+.np-info{flex:1}
+.np-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;letter-spacing:.5px}
+.np-detail{font-size:11px;color:var(--muted);margin-top:2px}
+.live-badge{
+  background:var(--red);color:#fff;font-size:10px;font-weight:700;
+  letter-spacing:1px;padding:3px 10px;border-radius:4px;text-transform:uppercase;
+  flex-shrink:0;animation:livepulse 2s infinite;
+}
+@keyframes livepulse{0%,100%{opacity:1}50%{opacity:.7}}
+
+/* Mobile */
+@media(max-width:680px){
+  body{
+    grid-template-rows:56px 200px 1fr;
+    grid-template-columns:1fr;
+    grid-template-areas:"hdr" "side" "main";
+    overflow:auto;
+  }
+  html,body{height:auto}
+  main{min-height:300px}
+  .lang-tabs{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><span class="ball">⚽</span> Bay Bang <em>IPSports</em></div>
+  <div class="search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="search" placeholder="Search channels…" oninput="doSearch()"/>
+  </div>
+  <div class="lang-tabs">
+    <button class="lang-tab active" onclick="setLang('all',this)">All</button>
+    <button class="lang-tab" onclick="setLang('eng',this)">English</button>
+    <button class="lang-tab" onclick="setLang('spa',this)">Español</button>
+    <button class="lang-tab" onclick="setLang('ara',this)">العربية</button>
+  </div>
+  <div class="hdr-status">
+    <span class="dot" id="sdot"></span>
+    <span id="stxt">Ready</span>
+  </div>
+</header>
+
+<aside>
+  <div class="side-head">Channels <span class="cnt-badge" id="cnt">0</span></div>
+  <div class="ch-list" id="chlist"></div>
+</aside>
+
+<main>
+  <div class="vid-wrap">
+    <video id="vid" controls playsinline></video>
+    <div class="overlay show" id="ov-welcome">
+      <div class="ov-icon">⚽</div>
+      <div class="ov-title">Bay Bang IPSports</div>
+      <div class="ov-sub">Pick a channel from the left panel to start watching. Supports any device, any browser.</div>
+    </div>
+    <div class="overlay" id="ov-loading">
+      <div class="spinner"></div>
+      <div class="ov-title">Connecting…</div>
+      <div class="ov-sub" id="loading-name"></div>
+    </div>
+    <div class="overlay" id="ov-error">
+      <div class="ov-icon">📡</div>
+      <div class="ov-title">Stream Offline</div>
+      <div class="ov-sub">This channel may be geo-restricted or temporarily offline. Try another channel.</div>
+    </div>
+  </div>
+  <div class="np-bar" id="npbar">
+    <div class="np-logo" id="np-logo"></div>
+    <div class="np-info">
+      <div class="np-name" id="np-name"></div>
+      <div class="np-detail" id="np-detail"></div>
+    </div>
+    <div class="live-badge">● Live</div>
+  </div>
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  CHANNEL LIST — 25 World Cup 2026 broadcasters
+//  Streams fetched live from your M3U source via CORS proxy
+// ═══════════════════════════════════════════════════════════
+const CHANNELS = [
+  // ── English ──────────────────────────────────────────────
+  {name:"BBC One HD",       flag:"🇬🇧", lang:"eng", country:"United Kingdom",
+   tvg:"BBCOne.uk",         logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/BBC_One_logo.svg/200px-BBC_One_logo.svg.png"},
+  {name:"ITV HD",           flag:"🇬🇧", lang:"eng", country:"United Kingdom",
+   tvg:"ITV.uk",            logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/ITV_logo_2013.svg/200px-ITV_logo_2013.svg.png"},
+  {name:"Fox Sports 1",     flag:"🇺🇸", lang:"eng", country:"United States",
+   tvg:"FoxSports1.us",     logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Fox_Sports_1_logo.svg/200px-Fox_Sports_1_logo.svg.png"},
+  {name:"Fox Sports 2",     flag:"🇺🇸", lang:"eng", country:"United States",
+   tvg:"FoxSports2.us",     logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Fox_Sports_2_logo.svg/200px-Fox_Sports_2_logo.svg.png"},
+  {name:"ESPN",             flag:"🇺🇸", lang:"eng", country:"United States",
+   tvg:"ESPN.us",           logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/ESPN_wordmark.svg/200px-ESPN_wordmark.svg.png"},
+  {name:"ESPN 2",           flag:"🇺🇸", lang:"eng", country:"United States",
+   tvg:"ESPN2.us",          logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/ESPN2_logo.svg/200px-ESPN2_logo.svg.png"},
+  {name:"TSN 1",            flag:"🇨🇦", lang:"eng", country:"Canada",
+   tvg:"TSN1.ca",           logo:"https://upload.wikimedia.org/wikipedia/en/thumb/6/67/TSN_logo.svg/200px-TSN_logo.svg.png"},
+  {name:"SBS",              flag:"🇦🇺", lang:"eng", country:"Australia",
+   tvg:"SBS.au",            logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/SBS_logo_2014.svg/200px-SBS_logo_2014.svg.png"},
+  {name:"Sky Sports Football",flag:"🇬🇧",lang:"eng", country:"United Kingdom",
+   tvg:"SkySportsFootball.uk",logo:"https://upload.wikimedia.org/wikipedia/en/thumb/a/a3/Sky_Sports_Football_logo.png/200px-Sky_Sports_Football_logo.png"},
+  {name:"Eurosport 1",      flag:"🌍", lang:"eng", country:"International",
+   tvg:"Eurosport1.uk",     logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Eurosport_1_logo.svg/200px-Eurosport_1_logo.svg.png"},
+
+  // ── Spanish ──────────────────────────────────────────────
+  {name:"Telemundo",        flag:"🇺🇸", lang:"spa", country:"United States",
+   tvg:"Telemundo.us",      logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Telemundo_2018.svg/200px-Telemundo_2018.svg.png"},
+  {name:"Universo",         flag:"🇺🇸", lang:"spa", country:"United States",
+   tvg:"Universo.us",       logo:"https://upload.wikimedia.org/wikipedia/en/thumb/8/8e/Universo_logo.png/200px-Universo_logo.png"},
+  {name:"TV Azteca",        flag:"🇲🇽", lang:"spa", country:"Mexico",
+   tvg:"TVAzteca.mx",       logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/TV_Azteca_logo.svg/200px-TV_Azteca_logo.svg.png"},
+  {name:"Televisa",         flag:"🇲🇽", lang:"spa", country:"Mexico",
+   tvg:"Canal5.mx",         logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Televisa_logo.svg/200px-Televisa_logo.svg.png"},
+  {name:"Globo",            flag:"🇧🇷", lang:"spa", country:"Brazil",
+   tvg:"RedeGlobo.br",      logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Rede_Globo_logo_2021.svg/200px-Rede_Globo_logo_2021.svg.png"},
+  {name:"RTVE La 1",        flag:"🇪🇸", lang:"spa", country:"Spain",
+   tvg:"La1.es",            logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/La_1_logo_2021.svg/200px-La_1_logo_2021.svg.png"},
+  {name:"RMC Sport 1",      flag:"🇫🇷", lang:"spa", country:"France",
+   tvg:"RMCSport1.fr",      logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/RMC_Sport_1.svg/200px-RMC_Sport_1.svg.png"},
+
+  // ── Arabic ───────────────────────────────────────────────
+  {name:"beIN Sports 1",    flag:"🇶🇦", lang:"ara", country:"Qatar/MENA",
+   tvg:"beINSports1.qa",    logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/BeIN_Sports_logo.svg/200px-BeIN_Sports_logo.svg.png"},
+  {name:"beIN Sports 2",    flag:"🇶🇦", lang:"ara", country:"Qatar/MENA",
+   tvg:"beINSports2.qa",    logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/BeIN_Sports_logo.svg/200px-BeIN_Sports_logo.svg.png"},
+  {name:"beIN Sports 3",    flag:"🇶🇦", lang:"ara", country:"Qatar/MENA",
+   tvg:"beINSports3.qa",    logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/BeIN_Sports_logo.svg/200px-BeIN_Sports_logo.svg.png"},
+  {name:"Al Kass Sport 1",  flag:"🇶🇦", lang:"ara", country:"Qatar",
+   tvg:"AlKassSport1.qa",   logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Al_Kass_Sports_Channels_logo.svg/200px-Al_Kass_Sports_Channels_logo.svg.png"},
+  {name:"Al Kass Sport 2",  flag:"🇶🇦", lang:"ara", country:"Qatar",
+   tvg:"AlKassSport2.qa",   logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Al_Kass_Sports_Channels_logo.svg/200px-Al_Kass_Sports_Channels_logo.svg.png"},
+  {name:"Al Jazeera Sport", flag:"🇶🇦", lang:"ara", country:"Qatar",
+   tvg:"AlJazeeraSport.qa", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Al_Jazeera_Media_Network_Logo.svg/200px-Al_Jazeera_Media_Network_Logo.svg.png"},
+  {name:"Abu Dhabi Sports 1",flag:"🇦🇪",lang:"ara", country:"UAE",
+   tvg:"AbuDhabiSports1.ae",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Abu_Dhabi_Sports_logo.png/200px-Abu_Dhabi_Sports_logo.png"},
+  {name:"TRT Spor",         flag:"🇹🇷", lang:"ara", country:"Turkey",
+   tvg:"TRTSpor.tr",        logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/TRT_Spor_logo.svg/200px-TRT_Spor_logo.svg.png"},
+];
+
+// ── CORS PROXIES (tried in order) ────────────────────────
+const PROXIES = [
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://thingproxy.freeboard.io/fetch/${url}`,
+];
+
+const M3U = "https://iptv-org.github.io/iptv/index.m3u";
+
+// ── STATE ────────────────────────────────────────────────
+let streamMap = {};   // tvg-id -> stream URL
+let activeLang = "all";
+let activeIdx  = -1;
+let hlsInst    = null;
+let allVisible = [...CHANNELS];
+
+// ── FETCH M3U ────────────────────────────────────────────
+async function fetchM3U() {
+  setStatus("Loading streams…", false);
+  for (const makeURL of PROXIES) {
+    try {
+      const r = await fetch(makeURL(M3U), {cache:"no-store"});
+      if (!r.ok) continue;
+      const txt = await r.text();
+      if (!txt.includes("#EXTM3U")) continue;
+      parseM3U(txt);
+      setStatus(`${Object.keys(streamMap).length} streams loaded`, false);
+      renderList();
+      return;
+    } catch(_){}
+  }
+  // All proxies failed — render list without URLs (shows offline state on play)
+  setStatus("Offline mode — streams may not load", false);
+  renderList();
+}
+
+function parseM3U(txt) {
+  const lines = txt.split("\n");
+  let cur = null;
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (line.startsWith("#EXTINF:")) {
+      cur = {};
+      const idM = line.match(/tvg-id="([^"]+)"/i);
+      if (idM) cur.id = idM[1].trim();
+    } else if (line && !line.startsWith("#") && cur) {
+      if (cur.id) streamMap[cur.id] = line;
+      // also index by partial name match
+      cur = null;
+    }
+  }
+}
+
+// ── RENDER ───────────────────────────────────────────────
+function renderList() {
+  const q = document.getElementById("search").value.toLowerCase().trim();
+  allVisible = CHANNELS.filter(ch => {
+    const langOk = activeLang === "all" || ch.lang === activeLang;
+    const qOk = !q || ch.name.toLowerCase().includes(q) || ch.country.toLowerCase().includes(q);
+    return langOk && qOk;
+  });
+  document.getElementById("cnt").textContent = allVisible.length;
+  const ul = document.getElementById("chlist");
+  ul.innerHTML = "";
+  if (!allVisible.length) {
+    ul.innerHTML = '<div class="no-res">No channels match your filter.</div>';
+    return;
+  }
+  allVisible.forEach((ch, i) => {
+    const d = document.createElement("div");
+    d.className = "ch-item" + (i === activeIdx ? " active" : "");
+    d.innerHTML = `
+      <div class="ch-logo">${ch.logo
+        ? `<img src="${ch.logo}" onerror="this.parentNode.textContent='📺'" loading="lazy"/>`
+        : ch.flag}</div>
+      <div class="ch-info">
+        <div class="ch-name">${ch.name}</div>
+        <div class="ch-meta">
+          <span class="lang-dot"></span>
+          <span>${ch.flag} ${ch.country}</span>
+          <span class="hd-tag">${ch.lang.toUpperCase()}</span>
+        </div>
+      </div>`;
+    d.onclick = () => play(i);
+    ul.appendChild(d);
+  });
+}
+
+// ── PLAY ─────────────────────────────────────────────────
+function play(idx) {
+  activeIdx = idx;
+  renderList();
+  const ch  = allVisible[idx];
+  const url = streamMap[ch.tvg];
+
+  showOv("loading");
+  document.getElementById("loading-name").textContent = ch.name;
+
+  const npbar = document.getElementById("npbar");
+  npbar.classList.add("show");
+  const npLogo = document.getElementById("np-logo");
+  npLogo.innerHTML = ch.logo
+    ? `<img src="${ch.logo}" onerror="this.parentNode.textContent='📺'" style="width:100%;height:100%;object-fit:contain;border-radius:4px"/>`
+    : ch.flag;
+  document.getElementById("np-name").textContent = ch.name;
+  document.getElementById("np-detail").textContent = `${ch.flag} ${ch.country} · ${langLabel(ch.lang)}`;
+  setStatus(ch.name, false);
+
+  if (!url) { showOv("error"); setStatus("No stream", false); return; }
+
+  if (hlsInst) { hlsInst.destroy(); hlsInst = null; }
+  const vid = document.getElementById("vid");
+  vid.removeAttribute("src");
+
+  const tryPlay = (src) => {
+    if (Hls.isSupported()) {
+      hlsInst = new Hls({enableWorker:false,maxBufferLength:12,maxMaxBufferLength:30});
+      hlsInst.loadSource(src);
+      hlsInst.attachMedia(vid);
+      hlsInst.on(Hls.Events.MANIFEST_PARSED, () => {
+        hideOv();
+        vid.play().then(()=>setStatus(ch.name,true)).catch(()=>hideOv());
+      });
+      hlsInst.on(Hls.Events.ERROR, (_e,d)=>{ if(d.fatal){ showOv("error"); setStatus("Error",false); }});
+    } else if (vid.canPlayType("application/vnd.apple.mpegurl")) {
+      vid.src = src;
+      vid.onloadedmetadata = () => { hideOv(); vid.play(); setStatus(ch.name,true); };
+      vid.onerror = () => { showOv("error"); setStatus("Error",false); };
+    } else {
+      vid.src = src;
+      vid.oncanplay = () => { hideOv(); setStatus(ch.name,true); };
+      vid.onerror = () => { showOv("error"); setStatus("Error",false); };
+      vid.play().catch(()=>{});
+    }
+  };
+
+  // Try direct first, then proxy
+  tryPlay(url);
+  // If HLS fails after 6s, try proxied URL
+  setTimeout(()=>{
+    if(document.getElementById("ov-loading").classList.contains("show")){
+      if(hlsInst){hlsInst.destroy();hlsInst=null;}
+      tryPlay(PROXIES[0](url));
+    }
+  }, 6000);
+}
+
+// ── HELPERS ──────────────────────────────────────────────
+function langLabel(l){ return l==="eng"?"English":l==="spa"?"Español":"العربية"; }
+
+function showOv(id){
+  ["ov-welcome","ov-loading","ov-error"].forEach(x=>{
+    document.getElementById(x).classList.remove("show");
+  });
+  document.getElementById("ov-"+id).classList.add("show");
+}
+function hideOv(){
+  ["ov-welcome","ov-loading","ov-error"].forEach(x=>{
+    document.getElementById(x).classList.remove("show");
+  });
+}
+function setStatus(txt, live){
+  document.getElementById("stxt").textContent = txt;
+  document.getElementById("sdot").className = "dot" + (live ? " live" : "");
+}
+function setLang(l, btn){
+  activeLang = l;
+  document.querySelectorAll(".lang-tab").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  activeIdx = -1;
+  renderList();
+}
+function doSearch(){ activeIdx=-1; renderList(); }
+
+// ── BOOT ─────────────────────────────────────────────────
+renderList();
+fetchM3U();
+</script>
+</body>
+</html>
